@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
 const MIN = 50;
-const MAX = 5000;
+const MAX = 500;
 const TENOR = 1;
 const RATE = 0.015; // kadar faedah bulanan (contoh)
 

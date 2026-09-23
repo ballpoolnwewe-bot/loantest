@@ -45,7 +45,7 @@ export function Footer() {
           DANARO FINTEK MALAYSIA — Tel: +603-2740 9849
         </p>
         <p className="mt-2 text-xs text-primary-foreground/60">
-          Laman contoh untuk tujuan pembelajaran. Bukan perkhidmatan kewangan sebenar.
+          .
         </p>
       </div>
     </footer>
