@@ -2,11 +2,11 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const reasons = [
-  { title: "Cepat & Efisien", desc: "Pengajuan singkat dan persetujuan segera." },
-  { title: "Transparan", desc: "Syarat jelas tanpa biaya tersembunyi." },
-  { title: "Aman & Patuh Aturan", desc: "Data Anda terlindungi sepenuhnya." },
-  { title: "Skoring Kredit Cerdas", desc: "Keputusan adil berbasis data." },
-  { title: "Fokus pada Nasabah", desc: "Dukungan sesuai kebutuhan Anda." },
+  { title: "Pantas & Cekap", desc: "Permohonan ringkas dan kelulusan segera." },
+  { title: "Telus", desc: "Syarat jelas tanpa caj tersembunyi." },
+  { title: "Selamat & Patuh Peraturan", desc: "Data anda dilindungi sepenuhnya." },
+  { title: "Pemarkahan Kredit Bijak", desc: "Keputusan adil berasaskan data." },
+  { title: "Mengutamakan Pelanggan", desc: "Sokongan mengikut keperluan anda." },
 ];
 
 export function WhyUs() {
@@ -14,9 +14,9 @@ export function WhyUs() {
     <section id="kenapa" className="mx-auto max-w-3xl px-4 py-16">
       <div className="overflow-hidden rounded-3xl border border-border shadow-[var(--shadow-card)]">
         <div className="bg-card px-6 py-8">
-          <h2 className="text-2xl font-bold md:text-3xl">Kenapa Pilih Kami?</h2>
+          <h2 className="text-2xl font-bold md:text-3xl">Mengapa Pilih Kami?</h2>
           <p className="mt-2 text-sm font-semibold text-muted-foreground">
-            Tanda penyedia pinjaman yang bisa dipercaya
+            Ciri-ciri penyedia pinjaman yang boleh dipercayai
           </p>
         </div>
         <div className="h-2 bg-[image:var(--gradient-band)]" />
@@ -35,7 +35,7 @@ export function WhyUs() {
           ))}
 
           <Button asChild size="lg" className="w-full rounded-xl text-base font-semibold">
-            <a href="#ajukan">Ajukan Sekarang</a>
+            <a href="#ajukan">Mohon Sekarang</a>
           </Button>
         </div>
       </div>

@@ -7,24 +7,24 @@ import {
 
 const faqs = [
   {
-    q: "Bagaimana cara mengajukan pinjaman?",
-    a: "Isi jumlah pinjaman dan nomor telepon di formulir, lalu tim kami akan menghubungi Anda untuk verifikasi.",
+    q: "Bagaimanakah cara memohon pinjaman?",
+    a: "Isi jumlah pinjaman dan nombor telefon dalam borang, kemudian pasukan kami akan menghubungi anda untuk pengesahan.",
   },
   {
-    q: "Apa saja syarat pengajuan?",
-    a: "KTP, usia minimal 21 tahun, dan bukti penghasilan atau rekening aktif.",
+    q: "Apakah syarat permohonan?",
+    a: "MyKad, berumur sekurang-kurangnya 21 tahun, serta bukti pendapatan atau akaun bank yang aktif.",
   },
   {
-    q: "Berapa lama proses pencairannya?",
-    a: "Setelah dokumen lengkap dan disetujui, dana biasanya cair dalam 1x24 jam kerja.",
+    q: "Berapa lamakah proses pembayaran dana?",
+    a: "Selepas dokumen lengkap dan diluluskan, dana biasanya dibayar dalam tempoh satu hari bekerja.",
   },
   {
-    q: "Berapa jumlah yang bisa saya pinjam?",
-    a: "Mulai dari Rp500.000 hingga Rp25.000.000 tergantung hasil penilaian kredit.",
+    q: "Berapakah jumlah yang boleh saya pinjam?",
+    a: "Daripada RM500 hingga RM25,000, bergantung pada hasil penilaian kredit.",
   },
   {
-    q: "Bagaimana cara membayar cicilan?",
-    a: "Melalui transfer bank atau dompet digital sesuai jadwal angsuran pada perjanjian.",
+    q: "Bagaimanakah cara membayar ansuran?",
+    a: "Melalui pindahan bank atau dompet digital mengikut jadual ansuran dalam perjanjian.",
   },
 ];
 

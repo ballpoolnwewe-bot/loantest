@@ -8,9 +8,9 @@ import { WhyUs } from "@/components/site/WhyUs";
 import { Faq } from "@/components/site/Faq";
 import { Footer } from "@/components/site/Footer";
 
-const title = "Danaro — Pinjaman Online Cepat & Transparan";
+const title = "Danaro — Pinjaman Dalam Talian Pantas & Telus";
 const description =
-  "Ajukan pinjaman online mulai Rp500 ribu hingga Rp25 juta. Proses cepat, syarat jelas, dan cicilan fleksibel.";
+  "Mohon pinjaman dalam talian daripada RM500 hingga RM25,000. Proses pantas, syarat jelas dan ansuran fleksibel.";
 
 export const Route = createFileRoute("/")({
   head: () => ({

@@ -1,12 +1,12 @@
 import { Wallet, Instagram, Facebook, Send, Youtube } from "lucide-react";
 
 const links = [
-  "Beranda",
+  "Laman Utama",
   "Cara Pembayaran",
   "Tentang Kami",
   "FAQ",
-  "Kirim Keluhan",
-  "Syarat dan Ketentuan",
+  "Hantar Aduan",
+  "Terma dan Syarat",
 ];
 
 export function Footer() {
@@ -20,7 +20,7 @@ export function Footer() {
           <span className="text-3xl font-bold">Danaro</span>
         </div>
 
-        <p className="mt-6 text-lg">021-27409849</p>
+        <p className="mt-6 text-lg">+603-2740 9849</p>
 
         <ul className="mt-6 space-y-4">
           {links.map((l) => (
@@ -42,10 +42,10 @@ export function Footer() {
 
         <hr className="my-8 border-primary-foreground/25" />
         <p className="text-sm text-primary-foreground/75">
-          PT FINRINGGIT FINTEK NUSANTARA — Tel: 021-27409849
+          DANARO FINTEK MALAYSIA — Tel: +603-2740 9849
         </p>
         <p className="mt-2 text-xs text-primary-foreground/60">
-          Contoh situs untuk tujuan pembelajaran. Bukan layanan keuangan sungguhan.
+          Laman contoh untuk tujuan pembelajaran. Bukan perkhidmatan kewangan sebenar.
         </p>
       </div>
     </footer>

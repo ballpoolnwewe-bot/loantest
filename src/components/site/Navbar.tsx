@@ -3,9 +3,9 @@ import { Menu, X, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const links = [
-  { label: "Beranda", href: "#beranda" },
-  { label: "Cara Kerja", href: "#proses" },
-  { label: "Kenapa Kami", href: "#kenapa" },
+  { label: "Laman Utama", href: "#beranda" },
+  { label: "Cara Ia Berfungsi", href: "#proses" },
+  { label: "Mengapa Kami", href: "#kenapa" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -36,10 +36,10 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <Button size="sm" className="rounded-full px-5">
-            Masuk
+             Log Masuk
           </Button>
           <button
-            aria-label="Buka menu"
+            aria-label="Buka menu navigasi"
             onClick={() => setOpen((v) => !v)}
             className="inline-flex size-9 items-center justify-center rounded-md text-foreground md:hidden"
           >

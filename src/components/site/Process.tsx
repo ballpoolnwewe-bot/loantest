@@ -1,11 +1,11 @@
 import { Globe, ScanLine, BadgeCheck, Banknote, Landmark } from "lucide-react";
 
 const steps = [
-  { icon: Globe, title: "Ajukan Online", desc: "Dokumen minimum" },
-  { icon: ScanLine, title: "Penilaian Cerdas", desc: "Skoring kredit otomatis" },
-  { icon: BadgeCheck, title: "Persetujuan Cepat", desc: "Keputusan cepat & transparan" },
-  { icon: Banknote, title: "Pencairan Dana", desc: "Cair dalam hitungan jam" },
-  { icon: Landmark, title: "Cicilan Fleksibel", desc: "Tenor yang bisa diatur" },
+  { icon: Globe, title: "Mohon Dalam Talian", desc: "Dokumen minimum" },
+  { icon: ScanLine, title: "Penilaian Bijak", desc: "Pemarkahan kredit automatik" },
+  { icon: BadgeCheck, title: "Kelulusan Pantas", desc: "Keputusan pantas dan telus" },
+  { icon: Banknote, title: "Pembayaran Dana", desc: "Dana diterima dalam beberapa jam" },
+  { icon: Landmark, title: "Ansuran Fleksibel", desc: "Tempoh bayaran boleh disesuaikan" },
 ];
 
 export function Process() {

@@ -6,7 +6,7 @@ export function Hero() {
     <section id="beranda" className="relative isolate overflow-hidden">
       <img
         src={heroImage}
-        alt="Latar teknologi keuangan digital"
+        alt="Latar teknologi kewangan digital"
         width={1536}
         height={1024}
         className="absolute inset-0 -z-10 size-full object-cover"
@@ -15,11 +15,11 @@ export function Hero() {
 
       <div className="mx-auto max-w-3xl px-4 py-20 text-center md:py-28">
         <h1 className="text-3xl font-extrabold leading-tight text-primary-foreground md:text-5xl">
-          Pinjaman Cerdas. Pencairan Lebih Cepat.
+          Pinjaman Bijak. Pembayaran Lebih Pantas.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-sm text-primary-foreground/80 md:text-base">
-          Penilaian risiko otomatis dan proses persetujuan yang efisien membuat pengajuan
-          pinjaman jadi jauh lebih mudah.
+          Penilaian risiko automatik dan proses kelulusan yang cekap menjadikan permohonan
+          pinjaman lebih mudah.
         </p>
         <Button
           size="lg"
@@ -27,7 +27,7 @@ export function Hero() {
           className="mt-8 rounded-full px-8 text-base font-semibold"
           asChild
         >
-          <a href="#ajukan">Ajukan Sekarang</a>
+          <a href="#ajukan">Mohon Sekarang</a>
         </Button>
       </div>
     </section>
