@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 const MIN = 50;
 const MAX = 5000;
 const TENOR = 1;
-const RATE = 0.015; // kadar faedah bulanan (contoh)
+const RATE = 0.3; // kadar faedah bulanan (contoh)
 
 const ringgit = (n: number) =>
   new Intl.NumberFormat("ms-MY", { style: "currency", currency: "MYR", maximumFractionDigits: 0 }).format(n);
