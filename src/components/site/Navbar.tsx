@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Menu, X, Wallet } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useSesi } from "@/hooks/use-sesi";
 
 const links = [
   { label: "Laman Utama", href: "#beranda" },
@@ -11,6 +14,13 @@ const links = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const { user, memuatkan } = useSesi();
+  const navigate = useNavigate();
+
+  const logKeluar = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/", replace: true });
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
@@ -35,9 +45,22 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button size="sm" className="rounded-full px-5">
-             Log Masuk
-          </Button>
+          {memuatkan ? null : user ? (
+            <>
+              <Button asChild size="sm" variant="ghost" className="hidden rounded-full sm:flex">
+                <Link to="/permohonan-saya">Permohonan Saya</Link>
+              </Button>
+              <Button size="sm" variant="outline" className="rounded-full px-5" onClick={logKeluar}>
+                Log Keluar
+              </Button>
+            </>
+          ) : (
+            <Button asChild size="sm" className="rounded-full px-5">
+              <Link to="/auth" search={{ redirect: "/mohon" }}>
+                Log Masuk
+              </Link>
+            </Button>
+          )}
           <button
             aria-label="Buka menu navigasi"
             onClick={() => setOpen((v) => !v)}
@@ -60,6 +83,15 @@ export function Navbar() {
               {l.label}
             </a>
           ))}
+          {user && (
+            <Link
+              to="/permohonan-saya"
+              onClick={() => setOpen(false)}
+              className="block rounded-md px-2 py-3 text-sm font-medium text-foreground hover:bg-accent"
+            >
+              Permohonan Saya
+            </Link>
+          )}
         </nav>
       )}
     </header>

@@ -1,4 +1,5 @@
 import heroImage from "@/assets/hero-finance.jpg";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
 export function Hero() {
@@ -27,7 +28,7 @@ export function Hero() {
           className="mt-8 rounded-full px-8 text-base font-semibold"
           asChild
         >
-          <a href="#ajukan">Mohon Sekarang</a>
+          <Link to="/mohon">Mohon Sekarang</Link>
         </Button>
       </div>
     </section>

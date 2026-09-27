@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
 const reasons = [
@@ -35,7 +36,7 @@ export function WhyUs() {
           ))}
 
           <Button asChild size="lg" className="w-full rounded-xl text-base font-semibold">
-            <a href="#ajukan">Mohon Sekarang</a>
+            <Link to="/mohon">Mohon Sekarang</Link>
           </Button>
         </div>
       </div>

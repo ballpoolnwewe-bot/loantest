@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -15,6 +16,7 @@ const ringgit = (n: number) =>
 export function LoanCalculator() {
   const [amount, setAmount] = useState(3_000);
   const [phone, setPhone] = useState("");
+  const navigate = useNavigate();
 
   const monthly = Math.round(amount / TENOR + amount * RATE);
 
@@ -24,8 +26,7 @@ export function LoanCalculator() {
       toast.error("Masukkan nombor telefon yang sah");
       return;
     }
-    toast.success("Permohonan diterima! Pasukan kami akan menghubungi anda.");
-    setPhone("");
+    navigate({ to: "/mohon" });
   };
 
   return (
