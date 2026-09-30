@@ -10,10 +10,45 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.18"
   }
   public: {
     Tables: {
+      pembayaran: {
+        Row: {
+          catatan: string | null
+          created_at: string
+          direkod_oleh: string | null
+          id: string
+          jumlah: number
+          pinjaman_id: string
+        }
+        Insert: {
+          catatan?: string | null
+          created_at?: string
+          direkod_oleh?: string | null
+          id?: string
+          jumlah: number
+          pinjaman_id: string
+        }
+        Update: {
+          catatan?: string | null
+          created_at?: string
+          direkod_oleh?: string | null
+          id?: string
+          jumlah?: number
+          pinjaman_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pembayaran_pinjaman_id_fkey"
+            columns: ["pinjaman_id"]
+            isOneToOne: false
+            referencedRelation: "pinjaman"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permohonan: {
         Row: {
           alamat: string
@@ -83,6 +118,59 @@ export type Database = {
         }
         Relationships: []
       }
+      pinjaman: {
+        Row: {
+          catatan_admin: string | null
+          created_at: string
+          id: string
+          jumlah_dibayar: number
+          jumlah_pokok: number
+          kadar_faedah_harian: number
+          permohonan_id: string
+          status: string
+          tarikh_lulus: string | null
+          tarikh_selesai: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          catatan_admin?: string | null
+          created_at?: string
+          id?: string
+          jumlah_dibayar?: number
+          jumlah_pokok: number
+          kadar_faedah_harian?: number
+          permohonan_id: string
+          status?: string
+          tarikh_lulus?: string | null
+          tarikh_selesai?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          catatan_admin?: string | null
+          created_at?: string
+          id?: string
+          jumlah_dibayar?: number
+          jumlah_pokok?: number
+          kadar_faedah_harian?: number
+          permohonan_id?: string
+          status?: string
+          tarikh_lulus?: string | null
+          tarikh_selesai?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pinjaman_permohonan_id_fkey"
+            columns: ["permohonan_id"]
+            isOneToOne: false
+            referencedRelation: "permohonan"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -140,6 +228,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      jumlah_tagihan: { Args: { _pinjaman_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "pemohon"
