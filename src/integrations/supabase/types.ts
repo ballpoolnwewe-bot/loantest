@@ -126,10 +126,15 @@ export type Database = {
           jumlah_dibayar: number
           jumlah_pokok: number
           kadar_faedah_harian: number
+          nama_bank: string | null
+          nama_pemegang_akaun: string | null
+          no_akaun: string | null
           permohonan_id: string
           status: string
           tarikh_lulus: string | null
           tarikh_selesai: string | null
+          tempoh_bulan: number | null
+          tujuan: string | null
           updated_at: string
           user_id: string
         }
@@ -140,10 +145,15 @@ export type Database = {
           jumlah_dibayar?: number
           jumlah_pokok: number
           kadar_faedah_harian?: number
+          nama_bank?: string | null
+          nama_pemegang_akaun?: string | null
+          no_akaun?: string | null
           permohonan_id: string
           status?: string
           tarikh_lulus?: string | null
           tarikh_selesai?: string | null
+          tempoh_bulan?: number | null
+          tujuan?: string | null
           updated_at?: string
           user_id: string
         }
@@ -154,10 +164,15 @@ export type Database = {
           jumlah_dibayar?: number
           jumlah_pokok?: number
           kadar_faedah_harian?: number
+          nama_bank?: string | null
+          nama_pemegang_akaun?: string | null
+          no_akaun?: string | null
           permohonan_id?: string
           status?: string
           tarikh_lulus?: string | null
           tarikh_selesai?: string | null
+          tempoh_bulan?: number | null
+          tujuan?: string | null
           updated_at?: string
           user_id?: string
         }

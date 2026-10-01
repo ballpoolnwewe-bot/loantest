@@ -3,7 +3,7 @@ import { Menu, X, Wallet } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useSesi } from "@/hooks/use-sesi";
+import { useSesi, useAdakahAdmin } from "@/hooks/use-sesi";
 
 const links = [
   { label: "Laman Utama", href: "#beranda" },
@@ -15,6 +15,7 @@ const links = [
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, memuatkan } = useSesi();
+  const adminKah = useAdakahAdmin(user?.id);
   const navigate = useNavigate();
 
   const logKeluar = async () => {
@@ -48,7 +49,11 @@ export function Navbar() {
           {memuatkan ? null : user ? (
             <>
               <Button asChild size="sm" variant="ghost" className="hidden rounded-full sm:flex">
-                <Link to="/permohonan-saya">Permohonan Saya</Link>
+                {adminKah ? (
+                  <Link to="/panel">Panel Admin</Link>
+                ) : (
+                  <Link to="/permohonan-saya">Permohonan Saya</Link>
+                )}
               </Button>
               <Button size="sm" variant="outline" className="rounded-full px-5" onClick={logKeluar}>
                 Log Keluar
@@ -85,11 +90,11 @@ export function Navbar() {
           ))}
           {user && (
             <Link
-              to="/permohonan-saya"
+              to={adminKah ? "/panel" : "/permohonan-saya"}
               onClick={() => setOpen(false)}
               className="block rounded-md px-2 py-3 text-sm font-medium text-foreground hover:bg-accent"
             >
-              Permohonan Saya
+              {adminKah ? "Panel Admin" : "Permohonan Saya"}
             </Link>
           )}
         </nav>

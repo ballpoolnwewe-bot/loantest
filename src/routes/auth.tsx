@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { semakAdmin } from "@/hooks/use-sesi";
 
 const title = "Log Masuk — Danaro";
 const description = "Log masuk atau daftar akaun Danaro untuk memohon pinjaman dalam talian.";
@@ -68,6 +69,12 @@ function HalamanAuth() {
         });
         if (error) throw error;
         toast.success("Selamat kembali!");
+      }
+      // Admin terus ke panel; pengguna biasa ke halaman yang dituju.
+      const { data: sesi } = await supabase.auth.getUser();
+      if (sesi.user && (await semakAdmin(sesi.user.id))) {
+        await navigate({ to: "/panel", replace: true });
+        return;
       }
       const tujuan = laluanSelamat(redirect);
       await navigate({ href: tujuan, replace: true });

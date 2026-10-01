@@ -133,8 +133,8 @@ function BorangMohon() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-bold">Borang Permohonan Pinjaman</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Lengkapkan maklumat di bawah dan muat naik dua (2) foto. Permohonan anda akan disemak oleh
-          pasukan kami.
+          Ambil masa kira-kira 3 minit: maklumat diri, pekerjaan, butiran pinjaman dan dua (2)
+          foto. Permohonan anda akan disemak oleh pasukan kami.
         </p>
 
         <form onSubmit={hantar} className="mt-8 space-y-8">
@@ -143,7 +143,16 @@ function BorangMohon() {
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="nama_penuh">Nama Penuh</Label>
-                <Input id="nama_penuh" name="nama_penuh" required placeholder="Ahmad bin Ali" />
+                <Input
+                  id="nama_penuh"
+                  name="nama_penuh"
+                  required
+                  autoComplete="name"
+                  placeholder="Ahmad bin Ali"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Isi nama penuh tepat seperti pada kad pengenalan.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="no_kad_pengenalan">No. Kad Pengenalan</Label>
@@ -151,6 +160,8 @@ function BorangMohon() {
                   id="no_kad_pengenalan"
                   name="no_kad_pengenalan"
                   required
+                  inputMode="numeric"
+                  autoComplete="off"
                   placeholder="900101-10-5555"
                 />
               </div>
@@ -160,6 +171,8 @@ function BorangMohon() {
                   id="no_telefon"
                   name="no_telefon"
                   type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   required
                   placeholder="+60 12 345 6789"
                 />
@@ -221,6 +234,7 @@ function BorangMohon() {
                   id="gaji_bulanan"
                   name="gaji_bulanan"
                   type="number"
+                  inputMode="numeric"
                   min="0"
                   required
                   placeholder="3500"

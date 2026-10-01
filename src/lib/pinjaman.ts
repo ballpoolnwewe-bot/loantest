@@ -58,3 +58,60 @@ export function labelStatusPinjaman(status: string) {
       return "Menunggu Kelulusan";
   }
 }
+
+/** Pilihan tempoh pinjaman (bulan). Mesti sepadan dengan semakan dalam sah_pinjaman(). */
+export const TENOR_PILIHAN = [1, 3, 6, 12] as const;
+
+export const TUJUAN_PINJAMAN = [
+  "Perbelanjaan perubatan",
+  "Pendidikan",
+  "Pembaikan rumah atau kenderaan",
+  "Modal perniagaan",
+  "Pembayaran bil atau hutang",
+  "Perbelanjaan keluarga",
+  "Lain-lain",
+] as const;
+
+export const SENARAI_BANK = [
+  "Maybank",
+  "CIMB Bank",
+  "Public Bank",
+  "RHB Bank",
+  "Hong Leong Bank",
+  "AmBank",
+  "Bank Islam",
+  "Bank Rakyat",
+  "BSN",
+  "Affin Bank",
+  "Alliance Bank",
+  "OCBC Bank",
+  "UOB",
+  "HSBC",
+  "Standard Chartered",
+  "Agrobank",
+  "MBSB Bank",
+] as const;
+
+/** Anggaran faedah sepanjang tempoh (30 hari sebulan) pada kadar harian tetap. */
+export function anggarFaedah(jumlah: number, tempohBulan: number): number {
+  return Math.round(jumlah * KADAR_FAEDAH_HARIAN * tempohBulan * 30 * 100) / 100;
+}
+
+const normalkanNama = (n: string) =>
+  n
+    .toUpperCase()
+    .replace(/[^A-Z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/** Bandingkan nama pemegang akaun dengan nama pada kad pengenalan (abaikan huruf besar/kecil dan tanda baca). */
+export function namaSama(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (!a || !b) return false;
+  return normalkanNama(a) === normalkanNama(b);
+}
+
+/** Sorokkan nombor akaun, tunjuk 4 digit terakhir sahaja. */
+export function sorokNoAkaun(no: string | null | undefined): string {
+  if (!no) return "-";
+  return `•••• ${no.slice(-4)}`;
+}

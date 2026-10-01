@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Wallet, Info } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { AlertTriangle, ChevronDown, Copy, Info, LogOut, Search, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useSesi, useAdakahAdmin } from "@/hooks/use-sesi";
-import { LencanaStatus } from "./permohonan-saya";
+import { LencanaStatus } from "@/components/site/LencanaStatus";
 import {
   bakiTagihan,
   hariBerjalan,
   jumlahFaedah,
   jumlahTagihan,
   labelStatusPinjaman,
+  namaSama,
   pilihanJumlah,
   ringgit,
 } from "@/lib/pinjaman";
@@ -23,9 +24,9 @@ import {
 export const Route = createFileRoute("/_authenticated/panel")({
   head: () => ({
     meta: [
-      { title: "Panel Kelulusan — Danaro" },
+      { title: "Panel Admin — Danaro" },
       { name: "description", content: "Panel pentadbir untuk meluluskan permohonan pinjaman." },
-      { property: "og:title", content: "Panel Kelulusan — Danaro" },
+      { property: "og:title", content: "Panel Admin — Danaro" },
       {
         property: "og:description",
         content: "Panel pentadbir untuk meluluskan permohonan pinjaman.",
@@ -69,14 +70,27 @@ type Pinjaman = {
   tarikh_selesai: string | null;
   catatan_admin: string | null;
   created_at: string;
+  tempoh_bulan: number | null;
+  tujuan: string | null;
+  nama_bank: string | null;
+  nama_pemegang_akaun: string | null;
+  no_akaun: string | null;
 };
+
+type Tab = "tindakan" | "aktif" | "semua";
+
+const perluTindakan = (p: Permohonan, pj: Pinjaman[]) =>
+  p.status === "menunggu" || pj.some((x) => x.status === "menunggu");
 
 function Panel() {
   const { user } = useSesi();
   const adminKah = useAdakahAdmin(user?.id);
+  const navigate = useNavigate();
   const [senarai, setSenarai] = useState<Permohonan[]>([]);
   const [pinjaman, setPinjaman] = useState<Pinjaman[]>([]);
   const [memuatkan, setMemuatkan] = useState(true);
+  const [tab, setTab] = useState<Tab>("tindakan");
+  const [carian, setCarian] = useState("");
 
   const muatSemula = useCallback(async () => {
     const [permohonanRes, pinjamanRes] = await Promise.all([
@@ -92,6 +106,35 @@ function Panel() {
     if (adminKah) void muatSemula();
     if (adminKah === false) setMemuatkan(false);
   }, [adminKah, muatSemula]);
+
+  const logKeluar = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/", replace: true });
+  };
+
+  const ringkasan = useMemo(() => {
+    const ikut = (id: string) => pinjaman.filter((x) => x.permohonan_id === id);
+    return {
+      permohonanBaharu: senarai.filter((p) => p.status === "menunggu").length,
+      pinjamanMenunggu: pinjaman.filter((x) => x.status === "menunggu").length,
+      pinjamanAktif: pinjaman.filter((x) => x.status === "aktif").length,
+      tindakan: senarai.filter((p) => perluTindakan(p, ikut(p.id))).length,
+      aktif: senarai.filter((p) => ikut(p.id).some((x) => x.status === "aktif")).length,
+    };
+  }, [senarai, pinjaman]);
+
+  const dipapar = useMemo(() => {
+    const kata = carian.trim().toLowerCase();
+    return senarai.filter((p) => {
+      const pj = pinjaman.filter((x) => x.permohonan_id === p.id);
+      if (tab === "tindakan" && !perluTindakan(p, pj)) return false;
+      if (tab === "aktif" && !pj.some((x) => x.status === "aktif")) return false;
+      if (!kata) return true;
+      return [p.nama_penuh, p.no_kad_pengenalan, p.no_telefon, p.emel].some((v) =>
+        v.toLowerCase().includes(kata),
+      );
+    });
+  }, [senarai, pinjaman, tab, carian]);
 
   if (adminKah === null) {
     return <p className="p-8 text-sm text-muted-foreground">Memuatkan...</p>;
@@ -113,42 +156,88 @@ function Panel() {
     );
   }
 
+  const tabs: { id: Tab; label: string; bilangan: number }[] = [
+    { id: "tindakan", label: "Perlu tindakan", bilangan: ringkasan.tindakan },
+    { id: "aktif", label: "Pinjaman aktif", bilangan: ringkasan.aktif },
+    { id: "semua", label: "Semua", bilangan: senarai.length },
+  ];
+
   return (
     <div className="min-h-screen bg-muted pb-16">
-      <header className="border-b border-border bg-background">
+      <header className="sticky top-0 z-30 border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Wallet className="size-5" />
             </span>
-            <span className="text-lg font-bold tracking-tight">Danaro Panel</span>
-          </Link>
-          <Link to="/permohonan-saya" className="text-sm font-medium text-primary hover:underline">
-            Permohonan Saya
-          </Link>
+            <span className="text-lg font-bold tracking-tight">Danaro Admin</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/">Lihat laman</Link>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={logKeluar}>
+              <LogOut className="size-4" /> Log Keluar
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="text-2xl font-bold">Panel Kelulusan Permohonan</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Semak maklumat pemohon, tetapkan had kredit, luluskan permintaan pinjaman dan rekod
-          bayaran pelanggan.
-        </p>
-        <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+      <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="grid grid-cols-3 gap-3">
+          <Statistik label="Permohonan baharu" nilai={ringkasan.permohonanBaharu} />
+          <Statistik label="Pinjaman menunggu" nilai={ringkasan.pinjamanMenunggu} />
+          <Statistik label="Pinjaman aktif" nilai={ringkasan.pinjamanAktif} />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div role="tablist" className="flex gap-1 overflow-x-auto rounded-xl bg-background p-1">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                role="tab"
+                aria-selected={tab === t.id}
+                onClick={() => setTab(t.id)}
+                className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  tab === t.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {t.label} ({t.bilangan})
+              </button>
+            ))}
+          </div>
+          <div className="relative sm:w-72">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={carian}
+              onChange={(e) => setCarian(e.target.value)}
+              placeholder="Cari nama, no. KP atau telefon"
+              className="bg-background pl-9"
+              aria-label="Cari pemohon"
+            />
+          </div>
+        </div>
+
+        <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
           <Info className="mt-0.5 size-3.5 shrink-0" />
           Semua pinjaman dikenakan faedah harian 0.005% daripada jumlah pokok.
         </p>
 
         {memuatkan ? (
           <p className="mt-8 text-sm text-muted-foreground">Memuatkan permohonan...</p>
-        ) : senarai.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
-            Tiada permohonan setakat ini.
+        ) : dipapar.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            {carian
+              ? "Tiada pemohon sepadan dengan carian anda."
+              : tab === "tindakan"
+                ? "Tiada apa yang perlu ditindak sekarang."
+                : "Tiada rekod."}
           </div>
         ) : (
-          <div className="mt-6 space-y-5">
-            {senarai.map((p) => (
+          <div className="mt-4 space-y-4">
+            {dipapar.map((p) => (
               <KadPermohonan
                 key={p.id}
                 p={p}
@@ -165,6 +254,15 @@ function Panel() {
   );
 }
 
+function Statistik({ label, nilai }: { label: string; nilai: number }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <p className="text-2xl font-extrabold text-primary">{nilai}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
 function KadPermohonan({
   p,
   pinjaman,
@@ -176,12 +274,15 @@ function KadPermohonan({
   adminId: string | undefined;
   onKemaskini: () => void;
 }) {
+  const perlu = perluTindakan(p, pinjaman);
+  const [terbuka, setTerbuka] = useState(perlu);
   const [had, setHad] = useState(p.had_kredit != null ? String(p.had_kredit) : "");
   const [catatan, setCatatan] = useState(p.catatan_admin ?? "");
   const [sibuk, setSibuk] = useState(false);
   const [foto, setFoto] = useState<{ kp?: string; selfie?: string }>({});
 
   useEffect(() => {
+    if (!terbuka) return;
     let batal = false;
     const ambil = async () => {
       const [kp, selfie] = await Promise.all([
@@ -199,7 +300,7 @@ function KadPermohonan({
     return () => {
       batal = true;
     };
-  }, [p.foto_kp_path, p.foto_selfie_path]);
+  }, [terbuka, p.foto_kp_path, p.foto_selfie_path]);
 
   const putuskan = async (status: "lulus" | "ditolak") => {
     if (status === "lulus" && (!had || Number(had) <= 0)) {
@@ -225,102 +326,157 @@ function KadPermohonan({
   };
 
   const pilihan = pilihanJumlah(Number(had) || 0);
+  const pinjamanMenunggu = pinjaman.filter((x) => x.status === "menunggu").length;
+  const pinjamanAktif = pinjaman.filter((x) => x.status === "aktif").length;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold">{p.nama_penuh}</h2>
+    <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
+      <button
+        type="button"
+        onClick={() => setTerbuka((v) => !v)}
+        aria-expanded={terbuka}
+        className="flex w-full items-start justify-between gap-3 p-5 text-left"
+      >
+        <div className="min-w-0">
+          <h2 className="truncate text-base font-bold">{p.nama_penuh}</h2>
           <p className="text-xs text-muted-foreground">
-            {p.no_kad_pengenalan} · {p.no_telefon} · {p.emel}
+            {p.no_kad_pengenalan} · {p.no_telefon}
           </p>
-        </div>
-        <LencanaStatus status={p.status} />
-      </div>
-
-      <dl className="mt-5 grid gap-3 text-sm md:grid-cols-3">
-        <Butiran label="Pekerjaan" nilai={p.pekerjaan} />
-        <Butiran label="Industri" nilai={p.industri} />
-        <Butiran label="Pengalaman" nilai={`${p.pengalaman_tahun} tahun`} />
-        <Butiran label="Gaji Bulanan" nilai={ringgit(p.gaji_bulanan)} />
-        <Butiran label="Jumlah Dipohon" nilai={ringgit(p.jumlah_dipohon)} />
-        <Butiran label="Tempoh" nilai={`${p.tempoh_bulan} bulan`} />
-        <Butiran label="Alamat" nilai={p.alamat} />
-      </dl>
-
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        {[
-          { url: foto.kp, label: "Kad Pengenalan" },
-          { url: foto.selfie, label: "Selfie" },
-        ].map((f) => (
-          <figure key={f.label}>
-            {f.url ? (
-              <img
-                src={f.url}
-                alt={`Foto ${f.label} pemohon`}
-                className="h-40 w-full rounded-xl object-cover"
-              />
-            ) : (
-              <div className="h-40 w-full rounded-xl bg-muted" />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-primary">{ringgit(p.jumlah_dipohon)}</span>
+            {pinjamanMenunggu > 0 && (
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
+                {pinjamanMenunggu} permintaan pinjaman
+              </span>
             )}
-            <figcaption className="mt-1 text-xs text-muted-foreground">{f.label}</figcaption>
-          </figure>
-        ))}
-      </div>
-
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor={`had-${p.id}`}>Had Kredit (RM)</Label>
-          <Input
-            id={`had-${p.id}`}
-            type="number"
-            min="0"
-            value={had}
-            onChange={(e) => setHad(e.target.value)}
-            placeholder="5000"
-          />
-          {pilihan.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Pelanggan akan nampak pilihan: {pilihan.map((n) => ringgit(n)).join(" · ")}
-            </p>
-          )}
+            {pinjamanAktif > 0 && (
+              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                {pinjamanAktif} aktif
+              </span>
+            )}
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor={`catatan-${p.id}`}>Catatan Pentadbir</Label>
-          <Textarea
-            id={`catatan-${p.id}`}
-            rows={2}
-            value={catatan}
-            onChange={(e) => setCatatan(e.target.value)}
-            placeholder="Contoh: dokumen lengkap"
+        <div className="flex shrink-0 items-center gap-2">
+          <LencanaStatus status={p.status} />
+          <ChevronDown
+            className={`size-4 text-muted-foreground transition-transform ${terbuka ? "rotate-180" : ""}`}
           />
         </div>
-      </div>
+      </button>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <Button disabled={sibuk} onClick={() => putuskan("lulus")} className="rounded-full">
-          Luluskan & Tetapkan Had
-        </Button>
-        <Button
-          disabled={sibuk}
-          variant="outline"
-          onClick={() => putuskan("ditolak")}
-          className="rounded-full"
-        >
-          Tolak
-        </Button>
-      </div>
+      {terbuka && (
+        <div className="border-t border-border p-5">
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">
+            <Butiran label="E-mel" nilai={p.emel} />
+            <Butiran label="Pekerjaan" nilai={p.pekerjaan} />
+            <Butiran label="Industri" nilai={p.industri} />
+            <Butiran label="Pengalaman" nilai={`${p.pengalaman_tahun} tahun`} />
+            <Butiran label="Gaji bulanan" nilai={ringgit(p.gaji_bulanan)} />
+            <Butiran label="Tempoh dipohon" nilai={`${p.tempoh_bulan} bulan`} />
+            <div className="sm:col-span-3">
+              <Butiran label="Alamat" nilai={p.alamat} />
+            </div>
+          </dl>
 
-      {pinjaman.length > 0 && (
-        <div className="mt-6 border-t border-border pt-5">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-            Pinjaman Pelanggan
-          </h3>
-          <div className="mt-3 space-y-3">
-            {pinjaman.map((pj) => (
-              <BarisPinjaman key={pj.id} pj={pj} adminId={adminId} onKemaskini={onKemaskini} />
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {[
+              { url: foto.kp, label: "Kad Pengenalan" },
+              { url: foto.selfie, label: "Selfie bersama KP" },
+            ].map((f) => (
+              <figure key={f.label}>
+                {f.url ? (
+                  <a href={f.url} target="_blank" rel="noreferrer">
+                    <img
+                      src={f.url}
+                      alt={`Foto ${f.label} pemohon`}
+                      className="h-40 w-full rounded-xl object-cover"
+                    />
+                  </a>
+                ) : (
+                  <div className="h-40 w-full animate-pulse rounded-xl bg-muted" />
+                )}
+                <figcaption className="mt-1 text-xs text-muted-foreground">{f.label}</figcaption>
+              </figure>
             ))}
           </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={`had-${p.id}`}>Had kredit (RM)</Label>
+              <Input
+                id={`had-${p.id}`}
+                type="number"
+                min="0"
+                inputMode="numeric"
+                value={had}
+                onChange={(e) => setHad(e.target.value)}
+                placeholder="5000"
+              />
+              {pilihan.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Pelanggan akan nampak pilihan: {pilihan.map((n) => ringgit(n)).join(" · ")}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`catatan-${p.id}`}>Catatan pentadbir</Label>
+              <Textarea
+                id={`catatan-${p.id}`}
+                rows={2}
+                value={catatan}
+                onChange={(e) => setCatatan(e.target.value)}
+                placeholder="Contoh: dokumen lengkap"
+              />
+            </div>
+          </div>
+
+          {p.status === "menunggu" ? (
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button disabled={sibuk} onClick={() => putuskan("lulus")} className="rounded-full">
+                Luluskan & tetapkan had
+              </Button>
+              <Button
+                disabled={sibuk}
+                variant="outline"
+                onClick={() => putuskan("ditolak")}
+                className="rounded-full"
+              >
+                Tolak permohonan
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Button
+                disabled={sibuk}
+                variant="outline"
+                size="sm"
+                onClick={() => putuskan(p.status === "lulus" ? "lulus" : "ditolak")}
+                className="rounded-full"
+              >
+                Simpan perubahan
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Permohonan sudah {p.status === "lulus" ? "diluluskan" : "ditolak"}.
+              </span>
+            </div>
+          )}
+
+          {pinjaman.length > 0 && (
+            <div className="mt-6 border-t border-border pt-5">
+              <h3 className="text-sm font-bold">Pinjaman pelanggan</h3>
+              <div className="mt-3 space-y-3">
+                {pinjaman.map((pj) => (
+                  <BarisPinjaman
+                    key={pj.id}
+                    pj={pj}
+                    namaKp={p.nama_penuh}
+                    adminId={adminId}
+                    onKemaskini={onKemaskini}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -329,10 +485,12 @@ function KadPermohonan({
 
 function BarisPinjaman({
   pj,
+  namaKp,
   adminId,
   onKemaskini,
 }: {
   pj: Pinjaman;
+  namaKp: string;
   adminId: string | undefined;
   onKemaskini: () => void;
 }) {
@@ -341,8 +499,30 @@ function BarisPinjaman({
   const [sibuk, setSibuk] = useState(false);
   const total = jumlahTagihan(pj);
   const baki = bakiTagihan(pj);
+  const adaAkaun = Boolean(pj.no_akaun);
+  const sepadan = namaSama(pj.nama_pemegang_akaun, namaKp);
+
+  const salinNoAkaun = async () => {
+    if (!pj.no_akaun) return;
+    try {
+      await navigator.clipboard.writeText(pj.no_akaun);
+      toast.success("Nombor akaun disalin.");
+    } catch {
+      toast.error("Tidak dapat menyalin. Salin secara manual.");
+    }
+  };
 
   const putuskan = async (status: "aktif" | "ditolak") => {
+    if (
+      status === "aktif" &&
+      adaAkaun &&
+      !sepadan &&
+      !window.confirm(
+        `Nama akaun (${pj.nama_pemegang_akaun}) tidak sama dengan nama KP (${namaKp}). Teruskan meluluskan?`,
+      )
+    ) {
+      return;
+    }
     setSibuk(true);
     const { error } = await supabase
       .from("pinjaman")
@@ -381,7 +561,7 @@ function BarisPinjaman({
     }
     setBayar("");
     setNota("");
-    toast.success("Bayaran direkodkan. Baki tagihan dikemaskini.");
+    toast.success("Bayaran direkodkan. Baki perlu dibayar dikemaskini.");
     onKemaskini();
   };
 
@@ -399,10 +579,47 @@ function BarisPinjaman({
         </span>
       </div>
 
+      {adaAkaun && (
+        <div className="mt-3 rounded-lg bg-muted p-3 text-sm">
+          <dl className="grid gap-2 sm:grid-cols-3">
+            <Butiran label="Tempoh" nilai={pj.tempoh_bulan ? `${pj.tempoh_bulan} bulan` : "-"} />
+            <div className="sm:col-span-2">
+              <Butiran label="Tujuan" nilai={pj.tujuan ?? "-"} />
+            </div>
+            <Butiran label="Bank" nilai={pj.nama_bank ?? "-"} />
+            <Butiran label="Nama pemegang akaun" nilai={pj.nama_pemegang_akaun ?? "-"} />
+            <div>
+              <dt className="text-xs text-muted-foreground">Nombor akaun</dt>
+              <dd className="flex items-center gap-2 font-medium text-foreground">
+                {pj.no_akaun}
+                <button
+                  type="button"
+                  onClick={salinNoAkaun}
+                  aria-label="Salin nombor akaun"
+                  className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                >
+                  <Copy className="size-3.5" />
+                </button>
+              </dd>
+            </div>
+          </dl>
+          {sepadan ? (
+            <p className="mt-2 text-xs font-medium text-primary">
+              Nama akaun sepadan dengan nama pada KP.
+            </p>
+          ) : (
+            <p className="mt-2 flex items-start gap-1.5 text-xs font-semibold text-destructive">
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+              Nama akaun tidak sama dengan nama pada KP ({namaKp}). Semak sebelum meluluskan.
+            </p>
+          )}
+        </div>
+      )}
+
       {pj.status === "menunggu" ? (
         <div className="mt-3 flex flex-wrap gap-3">
           <Button size="sm" className="rounded-full" disabled={sibuk} onClick={() => putuskan("aktif")}>
-            Luluskan Pinjaman
+            Luluskan pinjaman
           </Button>
           <Button
             size="sm"
@@ -420,10 +637,10 @@ function BarisPinjaman({
         <>
           <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
             <Butiran label={`Faedah (${hariBerjalan(pj)} hari)`} nilai={ringgit(jumlahFaedah(pj))} />
-            <Butiran label="Jumlah tagihan" nilai={ringgit(total)} />
+            <Butiran label="Jumlah keseluruhan" nilai={ringgit(total)} />
             <Butiran label="Sudah dibayar" nilai={ringgit(pj.jumlah_dibayar)} />
             <div>
-              <dt className="text-xs text-muted-foreground">Baki tagihan</dt>
+              <dt className="text-xs text-muted-foreground">Baki perlu dibayar</dt>
               <dd className="font-bold text-primary">{ringgit(baki)}</dd>
             </div>
           </dl>
@@ -452,7 +669,7 @@ function BarisPinjaman({
                 />
               </div>
               <Button className="rounded-full" disabled={sibuk} onClick={rekodBayaran}>
-                Tolak Tagihan
+                Rekod bayaran
               </Button>
             </div>
           )}

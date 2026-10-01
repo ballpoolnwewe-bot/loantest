@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Wallet, LogOut, Info } from "lucide-react";
-import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useSesi, useAdakahAdmin } from "@/hooks/use-sesi";
+import { useSesi } from "@/hooks/use-sesi";
+import { BorangPinjaman } from "@/components/site/BorangPinjaman";
+import { LencanaStatus } from "@/components/site/LencanaStatus";
 import {
   bakiTagihan,
   hariBerjalan,
   jumlahFaedah,
   jumlahTagihan,
   labelStatusPinjaman,
-  pilihanJumlah,
   ringgit,
+  sorokNoAkaun,
 } from "@/lib/pinjaman";
 
 export const Route = createFileRoute("/_authenticated/permohonan-saya")({
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/_authenticated/permohonan-saya")({
 
 type Permohonan = {
   id: string;
+  nama_penuh: string;
   jumlah_dipohon: number;
   tempoh_bulan: number;
   status: string;
@@ -55,22 +57,15 @@ type Pinjaman = {
   tarikh_selesai: string | null;
   catatan_admin: string | null;
   created_at: string;
+  tempoh_bulan: number | null;
+  tujuan: string | null;
+  nama_bank: string | null;
+  nama_pemegang_akaun: string | null;
+  no_akaun: string | null;
 };
-
-export function LencanaStatus({ status }: { status: string }) {
-  const gaya =
-    status === "lulus"
-      ? "bg-primary/10 text-primary"
-      : status === "ditolak"
-        ? "bg-destructive/10 text-destructive"
-        : "bg-secondary text-secondary-foreground";
-  const teks = status === "lulus" ? "Diluluskan" : status === "ditolak" ? "Ditolak" : "Menunggu";
-  return <span className={`rounded-full px-3 py-1 text-xs font-semibold ${gaya}`}>{teks}</span>;
-}
 
 function PermohonanSaya() {
   const { user } = useSesi();
-  const adminKah = useAdakahAdmin(user?.id);
   const navigate = useNavigate();
   const [senarai, setSenarai] = useState<Permohonan[]>([]);
   const [pinjaman, setPinjaman] = useState<Pinjaman[]>([]);
@@ -81,7 +76,7 @@ function PermohonanSaya() {
       supabase
         .from("permohonan")
         .select(
-          "id, jumlah_dipohon, tempoh_bulan, status, had_kredit, catatan_admin, created_at, pekerjaan",
+          "id, nama_penuh, jumlah_dipohon, tempoh_bulan, status, had_kredit, catatan_admin, created_at, pekerjaan",
         )
         .order("created_at", { ascending: false }),
       supabase.from("pinjaman").select("*").order("created_at", { ascending: false }),
@@ -112,11 +107,6 @@ function PermohonanSaya() {
             <span className="text-lg font-bold tracking-tight">Danaro</span>
           </Link>
           <div className="flex items-center gap-3">
-            {adminKah && (
-              <Link to="/panel" className="text-sm font-medium text-primary hover:underline">
-                Panel Admin
-              </Link>
-            )}
             <Button variant="ghost" size="sm" onClick={logKeluar}>
               <LogOut className="size-4" /> Log Keluar
             </Button>
@@ -170,27 +160,8 @@ function KadPermohonan({
   userId: string | undefined;
   onKemaskini: () => void;
 }) {
-  const [sibuk, setSibuk] = useState<number | null>(null);
   const had = p.had_kredit ?? 0;
-  const pilihan = pilihanJumlah(had);
   const adaBerjalan = pinjaman.some((x) => x.status === "menunggu" || x.status === "aktif");
-
-  const mohonPinjaman = async (jumlah: number) => {
-    if (!userId) return;
-    setSibuk(jumlah);
-    const { error } = await supabase.from("pinjaman").insert({
-      user_id: userId,
-      permohonan_id: p.id,
-      jumlah_pokok: jumlah,
-    });
-    setSibuk(null);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Permintaan pinjaman dihantar. Menunggu kelulusan pentadbir.");
-    onKemaskini();
-  };
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
@@ -205,13 +176,17 @@ function KadPermohonan({
         <LencanaStatus status={p.status} />
       </div>
 
+      {p.status === "menunggu" && (
+        <p className="mt-4 rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+          Permohonan anda sedang disemak. Anda akan nampak had kredit di sini selepas diluluskan.
+        </p>
+      )}
+
       {p.status === "lulus" && had > 0 && (
         <div className="mt-4 rounded-xl border border-border bg-muted p-4">
-          <p className="text-sm">
-            Had kredit anda:{" "}
-            <span className="text-base font-bold text-foreground">{ringgit(had)}</span>
-          </p>
-          <p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">Had kredit anda</p>
+          <p className="text-2xl font-extrabold text-foreground">{ringgit(had)}</p>
+          <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" />
             Kadar faedah harian 0.005% daripada jumlah pokok, dikira setiap hari bermula dari
             tarikh kelulusan pinjaman.
@@ -222,23 +197,15 @@ function KadPermohonan({
               Anda mempunyai pinjaman yang belum selesai. Selesaikan dahulu sebelum memohon lagi.
             </p>
           ) : (
-            <>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Pilih jumlah pinjaman
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {pilihan.map((jumlah) => (
-                  <Button
-                    key={jumlah}
-                    className="rounded-full"
-                    disabled={sibuk !== null}
-                    onClick={() => mohonPinjaman(jumlah)}
-                  >
-                    {ringgit(jumlah)}
-                  </Button>
-                ))}
-              </div>
-            </>
+            userId && (
+              <BorangPinjaman
+                permohonanId={p.id}
+                userId={userId}
+                namaKp={p.nama_penuh}
+                hadKredit={had}
+                onSelesai={onKemaskini}
+              />
+            )
           )}
         </div>
       )}
@@ -271,6 +238,18 @@ function KadPinjaman({ pj }: { pj: Pinjaman }) {
         </span>
       </div>
 
+      {(pj.tempoh_bulan || pj.tujuan || pj.nama_bank) && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          {[
+            pj.tempoh_bulan ? `${pj.tempoh_bulan} bulan` : null,
+            pj.tujuan,
+            pj.nama_bank ? `${pj.nama_bank} ${sorokNoAkaun(pj.no_akaun)}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+      )}
+
       {pj.status === "menunggu" && (
         <p className="mt-2 text-xs text-muted-foreground">
           Permintaan anda sedang disemak oleh pentadbir.
@@ -281,7 +260,7 @@ function KadPinjaman({ pj }: { pj: Pinjaman }) {
         <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           <Baris label="Pokok" nilai={ringgit(pj.jumlah_pokok)} />
           <Baris label={`Faedah (${hariBerjalan(pj)} hari)`} nilai={ringgit(jumlahFaedah(pj))} />
-          <Baris label="Jumlah tagihan" nilai={ringgit(total)} />
+          <Baris label="Jumlah keseluruhan" nilai={ringgit(total)} />
           <Baris label="Sudah dibayar" nilai={ringgit(pj.jumlah_dibayar)} />
           <div className="sm:col-span-2 rounded-lg bg-primary/10 px-3 py-2">
             <dt className="text-xs text-muted-foreground">Baki perlu dibayar</dt>

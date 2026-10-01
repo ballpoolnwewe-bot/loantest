@@ -48,3 +48,14 @@ export function useAdakahAdmin(userId: string | undefined) {
 
   return adminKah;
 }
+
+/** Semak sama ada pengguna ialah admin (untuk logik pengalihan sebelum halaman dimuatkan). */
+export async function semakAdmin(userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  return Boolean(data);
+}
