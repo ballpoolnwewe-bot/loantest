@@ -30,7 +30,7 @@ export function Navbar() {
           <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Wallet className="size-5" />
           </span>
-          <span className="text-lg font-bold tracking-tight">Danaro</span>
+          <span className="text-lg font-bold tracking-tight">Finringgit</span>
         </a>
 
         <nav className="hidden items-center gap-7 md:flex">

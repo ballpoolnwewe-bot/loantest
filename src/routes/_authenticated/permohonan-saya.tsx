@@ -22,9 +22,9 @@ import {
 export const Route = createFileRoute("/_authenticated/permohonan-saya")({
   head: () => ({
     meta: [
-      { title: "Permohonan Saya — Danaro" },
+      { title: "Permohonan Saya — Finringgit" },
       { name: "description", content: "Semak status permohonan pinjaman dan had kredit anda." },
-      { property: "og:title", content: "Permohonan Saya — Danaro" },
+      { property: "og:title", content: "Permohonan Saya — Finringgit" },
       {
         property: "og:description",
         content: "Semak status permohonan pinjaman dan had kredit anda.",
@@ -39,7 +39,6 @@ export const Route = createFileRoute("/_authenticated/permohonan-saya")({
 type Permohonan = {
   id: string;
   nama_penuh: string;
-  jumlah_dipohon: number;
   status: string;
   had_kredit: number | null;
   catatan_admin: string | null;
@@ -79,7 +78,7 @@ function PermohonanSaya() {
       supabase
         .from("permohonan")
         .select(
-          "id, nama_penuh, jumlah_dipohon, status, had_kredit, catatan_admin, created_at, pekerjaan",
+          "id, nama_penuh, status, had_kredit, catatan_admin, created_at, pekerjaan",
         )
         .order("created_at", { ascending: false }),
       supabase.from("pinjaman").select("*").order("created_at", { ascending: false }),
@@ -107,7 +106,7 @@ function PermohonanSaya() {
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Wallet className="size-5" />
             </span>
-            <span className="text-lg font-bold tracking-tight">Danaro</span>
+            <span className="text-lg font-bold tracking-tight">Finringgit</span>
           </Link>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={logKeluar}>
@@ -170,10 +169,9 @@ function KadPermohonan({
     <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-lg font-bold text-primary">{ringgit(p.jumlah_dipohon)}</p>
+          <p className="text-lg font-bold text-primary">{p.pekerjaan}</p>
           <p className="text-xs text-muted-foreground">
-            {p.pekerjaan} ·{" "}
-            {new Date(p.created_at).toLocaleDateString("ms-MY")}
+            Dihantar pada {new Date(p.created_at).toLocaleDateString("ms-MY")}
           </p>
         </div>
         <LencanaStatus status={p.status} />

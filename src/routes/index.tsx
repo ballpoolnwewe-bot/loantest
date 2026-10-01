@@ -8,7 +8,7 @@ import { WhyUs } from "@/components/site/WhyUs";
 import { Faq } from "@/components/site/Faq";
 import { Footer } from "@/components/site/Footer";
 
-const title = "Danaro — Pinjaman Dalam Talian Pantas & Telus";
+const title = "Finringgit — Pinjaman Dalam Talian Pantas & Telus";
 const description =
   "Mohon pinjaman dalam talian daripada RM500 hingga RM25,000. Proses pantas dengan tempoh 14 hingga 35 hari dan jumlah bayaran dipaparkan dengan jelas.";
 

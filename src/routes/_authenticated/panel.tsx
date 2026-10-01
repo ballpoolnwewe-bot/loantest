@@ -26,9 +26,9 @@ import {
 export const Route = createFileRoute("/_authenticated/panel")({
   head: () => ({
     meta: [
-      { title: "Panel Admin — Danaro" },
+      { title: "Panel Admin — Finringgit" },
       { name: "description", content: "Panel pentadbir untuk meluluskan permohonan pinjaman." },
-      { property: "og:title", content: "Panel Admin — Danaro" },
+      { property: "og:title", content: "Panel Admin — Finringgit" },
       {
         property: "og:description",
         content: "Panel pentadbir untuk meluluskan permohonan pinjaman.",
@@ -51,9 +51,10 @@ type Permohonan = {
   industri: string;
   pengalaman_tahun: number;
   gaji_bulanan: number;
-  jumlah_dipohon: number;
   foto_kp_path: string;
   foto_selfie_path: string;
+  foto_slip_gaji_path: string | null;
+  kenalan_kecemasan: { nama: string; hubungan: string; no_telefon: string }[] | null;
   status: string;
   had_kredit: number | null;
   catatan_admin: string | null;
@@ -173,7 +174,7 @@ function Panel() {
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Wallet className="size-5" />
             </span>
-            <span className="text-lg font-bold tracking-tight">Danaro Admin</span>
+            <span className="text-lg font-bold tracking-tight">Finringgit Admin</span>
           </div>
           <div className="flex items-center gap-1">
             <Button asChild variant="ghost" size="sm">
@@ -282,20 +283,24 @@ function KadPermohonan({
   const [had, setHad] = useState(p.had_kredit != null ? String(p.had_kredit) : "");
   const [catatan, setCatatan] = useState(p.catatan_admin ?? "");
   const [sibuk, setSibuk] = useState(false);
-  const [foto, setFoto] = useState<{ kp?: string; selfie?: string }>({});
+  const [foto, setFoto] = useState<{ kp?: string; selfie?: string; slip?: string }>({});
 
   useEffect(() => {
     if (!terbuka) return;
     let batal = false;
     const ambil = async () => {
-      const [kp, selfie] = await Promise.all([
+      const [kp, selfie, slip] = await Promise.all([
         supabase.storage.from("dokumen-permohonan").createSignedUrl(p.foto_kp_path, 3600),
         supabase.storage.from("dokumen-permohonan").createSignedUrl(p.foto_selfie_path, 3600),
+        p.foto_slip_gaji_path
+          ? supabase.storage.from("dokumen-permohonan").createSignedUrl(p.foto_slip_gaji_path, 3600)
+          : Promise.resolve(null),
       ]);
       if (!batal) {
         setFoto({
           ...(kp.data?.signedUrl ? { kp: kp.data.signedUrl } : {}),
           ...(selfie.data?.signedUrl ? { selfie: selfie.data.signedUrl } : {}),
+          ...(slip?.data?.signedUrl ? { slip: slip.data.signedUrl } : {}),
         });
       }
     };
@@ -303,7 +308,7 @@ function KadPermohonan({
     return () => {
       batal = true;
     };
-  }, [terbuka, p.foto_kp_path, p.foto_selfie_path]);
+  }, [terbuka, p.foto_kp_path, p.foto_selfie_path, p.foto_slip_gaji_path]);
 
   const putuskan = async (status: "lulus" | "ditolak") => {
     if (status === "lulus" && (!had || Number(had) <= 0)) {
@@ -346,7 +351,9 @@ function KadPermohonan({
             {p.no_kad_pengenalan} · {p.no_telefon}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-primary">{ringgit(p.jumlah_dipohon)}</span>
+            <span className="text-sm font-semibold text-primary">
+              {p.had_kredit != null ? `Had kredit ${ringgit(p.had_kredit)}` : "Had kredit belum ditetapkan"}
+            </span>
             {pinjamanMenunggu > 0 && (
               <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
                 {pinjamanMenunggu} permintaan pinjaman
@@ -380,13 +387,18 @@ function KadPermohonan({
             </div>
           </dl>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[
-              { url: foto.kp, label: "Kad Pengenalan" },
-              { url: foto.selfie, label: "Selfie bersama KP" },
+              { url: foto.kp, label: "Kad Pengenalan", ada: true },
+              { url: foto.selfie, label: "Selfie bersama KP", ada: true },
+              { url: foto.slip, label: "Slip Gaji", ada: Boolean(p.foto_slip_gaji_path) },
             ].map((f) => (
               <figure key={f.label}>
-                {f.url ? (
+                {!f.ada ? (
+                  <div className="flex h-40 w-full items-center justify-center rounded-xl bg-muted px-2 text-center text-xs text-muted-foreground">
+                    Tiada slip gaji (permohonan lama)
+                  </div>
+                ) : f.url ? (
                   <a href={f.url} target="_blank" rel="noreferrer">
                     <img
                       src={f.url}
@@ -400,6 +412,29 @@ function KadPermohonan({
                 <figcaption className="mt-1 text-xs text-muted-foreground">{f.label}</figcaption>
               </figure>
             ))}
+          </div>
+
+          <div className="mt-5">
+            <h3 className="text-sm font-bold">Kenalan kecemasan</h3>
+            {p.kenalan_kecemasan && p.kenalan_kecemasan.length > 0 ? (
+              <ul className="mt-2 divide-y divide-border rounded-xl border border-border text-sm">
+                {p.kenalan_kecemasan.map((k, i) => (
+                  <li key={i} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2">
+                    <span className="font-medium">
+                      {i + 1}. {k.nama}{" "}
+                      <span className="font-normal text-muted-foreground">({k.hubungan})</span>
+                    </span>
+                    <a href={`tel:${k.no_telefon}`} className="text-primary hover:underline">
+                      {k.no_telefon}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tiada kenalan kecemasan (permohonan lama).
+              </p>
+            )}
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">

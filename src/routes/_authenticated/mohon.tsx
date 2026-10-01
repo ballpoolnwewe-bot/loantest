@@ -20,9 +20,9 @@ import { useSesi } from "@/hooks/use-sesi";
 export const Route = createFileRoute("/_authenticated/mohon")({
   head: () => ({
     meta: [
-      { title: "Borang Permohonan Pinjaman — Danaro" },
+      { title: "Borang Permohonan Pinjaman — Finringgit" },
       { name: "description", content: "Isi maklumat diri dan pekerjaan untuk memohon pinjaman." },
-      { property: "og:title", content: "Borang Permohonan Pinjaman — Danaro" },
+      { property: "og:title", content: "Borang Permohonan Pinjaman — Finringgit" },
       {
         property: "og:description",
         content: "Isi maklumat diri dan pekerjaan untuk memohon pinjaman.",
@@ -49,6 +49,23 @@ const INDUSTRI = [
   "Lain-lain",
 ];
 
+const BILANGAN_KENALAN = 5;
+
+const HUBUNGAN = [
+  "Ibu / Bapa",
+  "Suami / Isteri",
+  "Adik-beradik",
+  "Anak",
+  "Saudara-mara",
+  "Rakan",
+  "Rakan sekerja",
+] as const;
+
+type Kenalan = { nama: string; hubungan: string; no_telefon: string };
+
+const kenalanKosong = (): Kenalan[] =>
+  Array.from({ length: BILANGAN_KENALAN }, () => ({ nama: "", hubungan: "", no_telefon: "" }));
+
 function BorangMohon() {
   const { user } = useSesi();
   const navigate = useNavigate();
@@ -56,6 +73,11 @@ function BorangMohon() {
   const [industri, setIndustri] = useState("");
   const [fotoKp, setFotoKp] = useState<File | null>(null);
   const [fotoSelfie, setFotoSelfie] = useState<File | null>(null);
+  const [fotoSlip, setFotoSlip] = useState<File | null>(null);
+  const [kenalan, setKenalan] = useState<Kenalan[]>(kenalanKosong);
+
+  const kemaskiniKenalan = (i: number, medan: keyof Kenalan, nilai: string) =>
+    setKenalan((lama) => lama.map((k, idx) => (idx === i ? { ...k, [medan]: nilai } : k)));
 
   const muatNaik = async (fail: File, userId: string, label: string) => {
     const sambungan = fail.name.split(".").pop() ?? "jpg";
@@ -70,8 +92,8 @@ function BorangMohon() {
   const hantar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
-    if (!fotoKp || !fotoSelfie) {
-      toast.error("Sila muat naik kedua-dua foto.");
+    if (!fotoKp || !fotoSelfie || !fotoSlip) {
+      toast.error("Sila muat naik ketiga-tiga dokumen: kad pengenalan, selfie dan slip gaji.");
       return;
     }
     if (!industri) {
@@ -79,12 +101,38 @@ function BorangMohon() {
       return;
     }
 
+    const kenalanBersih = kenalan.map((k) => ({
+      nama: k.nama.trim(),
+      hubungan: k.hubungan,
+      no_telefon: k.no_telefon.trim(),
+    }));
+    const lengkap = kenalanBersih.every(
+      (k) => k.nama.length >= 2 && k.hubungan && k.no_telefon.replace(/\D/g, "").length >= 9,
+    );
+    if (!lengkap) {
+      toast.error(
+        `Sila isi ${BILANGAN_KENALAN} kenalan kecemasan dengan lengkap (nama, hubungan dan nombor telefon).`,
+      );
+      return;
+    }
+    const nomborUnik = new Set(kenalanBersih.map((k) => k.no_telefon.replace(/\D/g, "")));
+    if (nomborUnik.size !== BILANGAN_KENALAN) {
+      toast.error("Setiap kenalan kecemasan mesti mempunyai nombor telefon yang berbeza.");
+      return;
+    }
+    const nomborSendiri = String(new FormData(e.currentTarget).get("no_telefon") ?? "").replace(/\D/g, "");
+    if (nomborSendiri && nomborUnik.has(nomborSendiri)) {
+      toast.error("Nombor telefon kenalan kecemasan tidak boleh sama dengan nombor telefon anda.");
+      return;
+    }
+
     const borang = new FormData(e.currentTarget);
     setSibuk(true);
     try {
-      const [fotoKpPath, fotoSelfiePath] = await Promise.all([
+      const [fotoKpPath, fotoSelfiePath, fotoSlipPath] = await Promise.all([
         muatNaik(fotoKp, user.id, "kad-pengenalan"),
         muatNaik(fotoSelfie, user.id, "selfie"),
+        muatNaik(fotoSlip, user.id, "slip-gaji"),
       ]);
 
       const { error } = await supabase.from("permohonan").insert({
@@ -98,9 +146,10 @@ function BorangMohon() {
         industri,
         pengalaman_tahun: Number(borang.get("pengalaman_tahun") ?? 0),
         gaji_bulanan: Number(borang.get("gaji_bulanan") ?? 0),
-        jumlah_dipohon: Number(borang.get("jumlah_dipohon") ?? 0),
         foto_kp_path: fotoKpPath,
         foto_selfie_path: fotoSelfiePath,
+        foto_slip_gaji_path: fotoSlipPath,
+        kenalan_kecemasan: kenalanBersih,
       });
       if (error) throw error;
 
@@ -121,7 +170,7 @@ function BorangMohon() {
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Wallet className="size-5" />
             </span>
-            <span className="text-lg font-bold tracking-tight">Danaro</span>
+            <span className="text-lg font-bold tracking-tight">Finringgit</span>
           </Link>
           <Link to="/permohonan-saya" className="text-sm font-medium text-primary hover:underline">
             Permohonan Saya
@@ -132,8 +181,8 @@ function BorangMohon() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-bold">Borang Permohonan Pinjaman</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ambil masa kira-kira 3 minit: maklumat diri, pekerjaan, jumlah dipohon dan dua (2)
-          foto. Permohonan anda akan disemak oleh pasukan kami.
+          Ambil masa kira-kira 5 minit: maklumat diri, pekerjaan, tiga (3) dokumen dan lima (5)
+          kenalan kecemasan. Had kredit anda akan ditetapkan oleh pasukan kami selepas semakan.
         </p>
 
         <form onSubmit={hantar} className="mt-8 space-y-8">
@@ -243,31 +292,11 @@ function BorangMohon() {
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-            <h2 className="text-base font-bold">Butiran Pinjaman</h2>
+            <h2 className="text-base font-bold">Muat Naik 3 Dokumen</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Tempoh pinjaman (14 hingga 35 hari) dipilih selepas had kredit anda diluluskan.
+              Foto kad pengenalan, foto selfie anda bersama kad pengenalan dan slip gaji terkini.
             </p>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="jumlah_dipohon">Jumlah Dipohon (RM)</Label>
-                <Input
-                  id="jumlah_dipohon"
-                  name="jumlah_dipohon"
-                  type="number"
-                  min="50"
-                  required
-                  defaultValue={3000}
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-            <h2 className="text-base font-bold">Muat Naik 2 Foto</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Foto kad pengenalan dan foto selfie anda bersama kad pengenalan.
-            </p>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
               <KotakFoto
                 id="foto_kp"
                 label="Foto Kad Pengenalan"
@@ -280,6 +309,72 @@ function BorangMohon() {
                 fail={fotoSelfie}
                 onPilih={setFotoSelfie}
               />
+              <KotakFoto
+                id="foto_slip_gaji"
+                label="Foto Slip Gaji"
+                fail={fotoSlip}
+                onPilih={setFotoSlip}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+            <h2 className="text-base font-bold">Kenalan Kecemasan</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Wajib isi {BILANGAN_KENALAN} orang kenalan yang boleh dihubungi. Pastikan nombor
+              telefon mereka betul dan berbeza antara satu sama lain.
+            </p>
+            <div className="mt-4 space-y-4">
+              {kenalan.map((k, i) => (
+                <fieldset key={i} className="rounded-xl border border-border bg-muted/40 p-4">
+                  <legend className="px-1 text-sm font-semibold">Kenalan {i + 1}</legend>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor={`kenalan-nama-${i}`}>Nama Penuh</Label>
+                      <Input
+                        id={`kenalan-nama-${i}`}
+                        value={k.nama}
+                        onChange={(e) => kemaskiniKenalan(i, "nama", e.target.value)}
+                        required
+                        autoComplete="off"
+                        className="bg-background"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`kenalan-hubungan-${i}`}>Hubungan</Label>
+                      <Select
+                        value={k.hubungan}
+                        onValueChange={(v) => kemaskiniKenalan(i, "hubungan", v)}
+                      >
+                        <SelectTrigger id={`kenalan-hubungan-${i}`} className="bg-background">
+                          <SelectValue placeholder="Pilih hubungan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HUBUNGAN.map((h) => (
+                            <SelectItem key={h} value={h}>
+                              {h}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`kenalan-telefon-${i}`}>Nombor Telefon</Label>
+                      <Input
+                        id={`kenalan-telefon-${i}`}
+                        value={k.no_telefon}
+                        onChange={(e) => kemaskiniKenalan(i, "no_telefon", e.target.value)}
+                        type="tel"
+                        inputMode="tel"
+                        required
+                        autoComplete="off"
+                        placeholder="+60 12 345 6789"
+                        className="bg-background"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+              ))}
             </div>
           </section>
 

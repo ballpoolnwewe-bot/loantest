@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { semakAdmin } from "@/hooks/use-sesi";
 
-const title = "Log Masuk — Danaro";
-const description = "Log masuk atau daftar akaun Danaro untuk memohon pinjaman dalam talian.";
+const title = "Log Masuk — Finringgit";
+const description = "Log masuk atau daftar akaun Finringgit untuk memohon pinjaman dalam talian.";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -98,7 +98,7 @@ function HalamanAuth() {
         <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Wallet className="size-5" />
         </span>
-        <span className="text-lg font-bold tracking-tight">Danaro</span>
+        <span className="text-lg font-bold tracking-tight">Finringgit</span>
       </Link>
 
       <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">

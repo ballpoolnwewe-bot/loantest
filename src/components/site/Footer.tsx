@@ -17,7 +17,7 @@ export function Footer() {
           <span className="flex size-12 items-center justify-center rounded-xl bg-background text-primary">
             <Wallet className="size-6" />
           </span>
-          <span className="text-3xl font-bold">Danaro</span>
+          <span className="text-3xl font-bold">Finringgit</span>
         </div>
 
         <p className="mt-6 text-lg">+603-2740 9849</p>
@@ -42,7 +42,7 @@ export function Footer() {
 
         <hr className="my-8 border-primary-foreground/25" />
         <p className="text-sm text-primary-foreground/75">
-          DANARO FINTEK MALAYSIA — Tel: +603-2740 9849
+          FINRINGGIT FINTEK MALAYSIA — Tel: +603-2740 9849
         </p>
         <p className="mt-2 text-xs text-primary-foreground/60">
           .

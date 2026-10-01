@@ -61,7 +61,9 @@ export type Database = {
           had_kredit: number | null
           id: string
           industri: string
+          foto_slip_gaji_path: string | null
           jumlah_dipohon: number
+          kenalan_kecemasan: Json
           nama_penuh: string
           no_kad_pengenalan: string
           no_telefon: string
@@ -83,7 +85,9 @@ export type Database = {
           had_kredit?: number | null
           id?: string
           industri: string
+          foto_slip_gaji_path?: string | null
           jumlah_dipohon?: number
+          kenalan_kecemasan?: Json
           nama_penuh: string
           no_kad_pengenalan: string
           no_telefon: string
@@ -105,7 +109,9 @@ export type Database = {
           had_kredit?: number | null
           id?: string
           industri?: string
+          foto_slip_gaji_path?: string | null
           jumlah_dipohon?: number
+          kenalan_kecemasan?: Json
           nama_penuh?: string
           no_kad_pengenalan?: string
           no_telefon?: string
