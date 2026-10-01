@@ -6,10 +6,9 @@ import { LoanCalculator } from "@/components/site/LoanCalculator";
 import { Process } from "@/components/site/Process";
 import { WhyUs } from "@/components/site/WhyUs";
 import { Faq } from "@/components/site/Faq";
-import { TrustBar, EligibilityCheck, Documents, Testimonials, SecurityNote, WhatsAppButton } from "@/components/site/Extras";
 import { Footer } from "@/components/site/Footer";
 
-const title = "FinRinggit — Pinjaman Dalam Talian Pantas & Telus";
+const title = "Danaro — Pinjaman Dalam Talian Pantas & Telus";
 const description =
   "Mohon pinjaman dalam talian daripada RM500 hingga RM25,000. Proses pantas, syarat jelas dan ansuran fleksibel.";
 
@@ -33,19 +32,13 @@ function Index() {
       <Navbar />
       <main>
         <Hero />
-        <TrustBar />
         <LoanCalculator />
-        <EligibilityCheck />
         <Process />
-        <Documents />
         <WhyUs />
-        <Testimonials />
         <Faq />
-        <SecurityNote />
       </main>
       <Footer />
       <Toaster />
-      <WhatsAppButton />
     </div>
   );
 }
