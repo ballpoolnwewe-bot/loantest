@@ -22,6 +22,8 @@ export function pilihanJumlah(hadKredit: number): number[] {
 export type PinjamanAsas = {
   jumlah_pokok: number;
   kadar_faedah_harian: number;
+  kadar_faedah_tetap?: number | null;
+  tempoh_hari?: number | null;
   jumlah_dibayar: number;
   tarikh_lulus: string | null;
   tarikh_selesai: string | null;
@@ -35,6 +37,10 @@ export function hariBerjalan(p: PinjamanAsas): number {
 }
 
 export function jumlahFaedah(p: PinjamanAsas): number {
+  // Pinjaman baharu: faedah tetap sekali sahaja. Pinjaman lama: kadar harian.
+  if (p.kadar_faedah_tetap != null) {
+    return Math.round(p.jumlah_pokok * p.kadar_faedah_tetap * 100) / 100;
+  }
   return Math.round(p.jumlah_pokok * p.kadar_faedah_harian * hariBerjalan(p) * 100) / 100;
 }
 
@@ -59,8 +65,24 @@ export function labelStatusPinjaman(status: string) {
   }
 }
 
-/** Pilihan tempoh pinjaman (bulan). Mesti sepadan dengan semakan dalam sah_pinjaman(). */
-export const TENOR_PILIHAN = [1, 3, 6, 12] as const;
+/**
+ * Tempoh pinjaman (hari) dan faedah tetap. 14 hari = 50%, setiap tambahan 7 hari +25%.
+ * Mesti sepadan dengan CASE dalam sah_pinjaman() (migrasi 20261001010000).
+ */
+export const TENOR_HARI = [14, 21, 28, 35] as const;
+
+export function kadarFaedahTetap(hari: number): number {
+  return 0.5 + ((hari - 14) / 7) * 0.25;
+}
+
+export const peratus = (kadar: number) => `${Math.round(kadar * 100)}%`;
+
+export function tarikhJatuhTempo(p: PinjamanAsas): Date | null {
+  if (!p.tarikh_lulus || !p.tempoh_hari) return null;
+  const d = new Date(p.tarikh_lulus);
+  d.setDate(d.getDate() + p.tempoh_hari);
+  return d;
+}
 
 export const TUJUAN_PINJAMAN = [
   "Perbelanjaan perubatan",
@@ -72,6 +94,7 @@ export const TUJUAN_PINJAMAN = [
   "Lain-lain",
 ] as const;
 
+/** Bank berlesen di Malaysia. */
 export const SENARAI_BANK = [
   "Maybank",
   "CIMB Bank",
@@ -79,22 +102,27 @@ export const SENARAI_BANK = [
   "RHB Bank",
   "Hong Leong Bank",
   "AmBank",
-  "Bank Islam",
+  "Bank Islam Malaysia",
+  "Bank Muamalat Malaysia",
   "Bank Rakyat",
-  "BSN",
+  "BSN (Bank Simpanan Nasional)",
   "Affin Bank",
   "Alliance Bank",
-  "OCBC Bank",
-  "UOB",
-  "HSBC",
-  "Standard Chartered",
   "Agrobank",
   "MBSB Bank",
+  "OCBC Bank (Malaysia)",
+  "UOB Malaysia",
+  "HSBC Malaysia",
+  "Standard Chartered Malaysia",
+  "Citibank Malaysia",
+  "Al Rajhi Bank Malaysia",
+  "Kuwait Finance House Malaysia",
+  "Bank of China (Malaysia)",
 ] as const;
 
-/** Anggaran faedah sepanjang tempoh (30 hari sebulan) pada kadar harian tetap. */
-export function anggarFaedah(jumlah: number, tempohBulan: number): number {
-  return Math.round(jumlah * KADAR_FAEDAH_HARIAN * tempohBulan * 30 * 100) / 100;
+/** Faedah tetap untuk jumlah dan tempoh (hari) yang dipilih. */
+export function faedahTetap(jumlah: number, hari: number): number {
+  return Math.round(jumlah * kadarFaedahTetap(hari) * 100) / 100;
 }
 
 const normalkanNama = (n: string) =>

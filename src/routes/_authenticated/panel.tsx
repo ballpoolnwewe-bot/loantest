@@ -18,7 +18,9 @@ import {
   labelStatusPinjaman,
   namaSama,
   pilihanJumlah,
+  peratus,
   ringgit,
+  tarikhJatuhTempo,
 } from "@/lib/pinjaman";
 
 export const Route = createFileRoute("/_authenticated/panel")({
@@ -50,7 +52,6 @@ type Permohonan = {
   pengalaman_tahun: number;
   gaji_bulanan: number;
   jumlah_dipohon: number;
-  tempoh_bulan: number;
   foto_kp_path: string;
   foto_selfie_path: string;
   status: string;
@@ -71,6 +72,8 @@ type Pinjaman = {
   catatan_admin: string | null;
   created_at: string;
   tempoh_bulan: number | null;
+  tempoh_hari: number | null;
+  kadar_faedah_tetap: number | null;
   tujuan: string | null;
   nama_bank: string | null;
   nama_pemegang_akaun: string | null;
@@ -222,7 +225,7 @@ function Panel() {
 
         <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
           <Info className="mt-0.5 size-3.5 shrink-0" />
-          Semua pinjaman dikenakan faedah harian 0.005% daripada jumlah pokok.
+          Faedah tetap mengikut tempoh: 14 hari 50%, 21 hari 75%, 28 hari 100%, 35 hari 125%.
         </p>
 
         {memuatkan ? (
@@ -372,7 +375,6 @@ function KadPermohonan({
             <Butiran label="Industri" nilai={p.industri} />
             <Butiran label="Pengalaman" nilai={`${p.pengalaman_tahun} tahun`} />
             <Butiran label="Gaji bulanan" nilai={ringgit(p.gaji_bulanan)} />
-            <Butiran label="Tempoh dipohon" nilai={`${p.tempoh_bulan} bulan`} />
             <div className="sm:col-span-3">
               <Butiran label="Alamat" nilai={p.alamat} />
             </div>
@@ -582,7 +584,7 @@ function BarisPinjaman({
       {adaAkaun && (
         <div className="mt-3 rounded-lg bg-muted p-3 text-sm">
           <dl className="grid gap-2 sm:grid-cols-3">
-            <Butiran label="Tempoh" nilai={pj.tempoh_bulan ? `${pj.tempoh_bulan} bulan` : "-"} />
+            <Butiran label="Tempoh" nilai={pj.tempoh_hari ? `${pj.tempoh_hari} hari` : "-"} />
             <div className="sm:col-span-2">
               <Butiran label="Tujuan" nilai={pj.tujuan ?? "-"} />
             </div>
@@ -636,7 +638,14 @@ function BarisPinjaman({
       ) : (
         <>
           <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
-            <Butiran label={`Faedah (${hariBerjalan(pj)} hari)`} nilai={ringgit(jumlahFaedah(pj))} />
+            <Butiran
+              label={
+                pj.kadar_faedah_tetap != null
+                  ? `Faedah tetap (${peratus(pj.kadar_faedah_tetap)})`
+                  : `Faedah (${hariBerjalan(pj)} hari)`
+              }
+              nilai={ringgit(jumlahFaedah(pj))}
+            />
             <Butiran label="Jumlah keseluruhan" nilai={ringgit(total)} />
             <Butiran label="Sudah dibayar" nilai={ringgit(pj.jumlah_dibayar)} />
             <div>

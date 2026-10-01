@@ -23,8 +23,8 @@ const faqs = [
     a: "Daripada RM500 hingga RM25,000, bergantung pada hasil penilaian kredit.",
   },
   {
-    q: "Bagaimanakah cara membayar ansuran?",
-    a: "Melalui pindahan bank atau dompet digital mengikut jadual ansuran dalam perjanjian.",
+    q: "Bagaimanakah cara membayar balik?",
+    a: "Melalui pindahan bank atau dompet digital sebelum tarikh akhir mengikut tempoh pinjaman (14, 21, 28 atau 35 hari).",
   },
 ];
 

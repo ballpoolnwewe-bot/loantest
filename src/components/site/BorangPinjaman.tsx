@@ -23,10 +23,12 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   SENARAI_BANK,
-  TENOR_PILIHAN,
+  TENOR_HARI,
   TUJUAN_PINJAMAN,
-  anggarFaedah,
+  faedahTetap,
+  kadarFaedahTetap,
   namaSama,
+  peratus,
   pilihanJumlah,
   ringgit,
 } from "@/lib/pinjaman";
@@ -50,10 +52,11 @@ export function BorangPinjaman({ permohonanId, userId, namaKp, hadKredit, onSele
   const [namaAkaun, setNamaAkaun] = useState(namaKp.toUpperCase());
   const [noAkaun, setNoAkaun] = useState("");
   const [sah, setSah] = useState(false);
+  const [setujuTerma, setSetujuTerma] = useState(false);
   const [sibuk, setSibuk] = useState(false);
 
   const namaTidakSepadan = namaAkaun.trim().length > 0 && !namaSama(namaAkaun, namaKp);
-  const anggaran = jumlah && tenor ? anggarFaedah(jumlah, tenor) : null;
+  const faedah = jumlah && tenor ? faedahTetap(jumlah, tenor) : null;
 
   const hantar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,13 +71,15 @@ export function BorangPinjaman({ permohonanId, userId, namaKp, hadKredit, onSele
     if (digit.length < 8 || digit.length > 20)
       return void toast.error("Nombor akaun mesti 8 hingga 20 digit.");
     if (!sah) return void toast.error("Sahkan nama pemegang akaun sama dengan kad pengenalan.");
+    if (!setujuTerma) return void toast.error("Anda mesti bersetuju dengan terma dan syarat.");
 
     setSibuk(true);
     const { error } = await supabase.from("pinjaman").insert({
       user_id: userId,
       permohonan_id: permohonanId,
       jumlah_pokok: jumlah,
-      tempoh_bulan: tenor,
+      tempoh_hari: tenor,
+      setuju_terma_pada: new Date().toISOString(),
       tujuan: tujuanAkhir,
       nama_bank: bank,
       nama_pemegang_akaun: namaAkaun.trim().toUpperCase(),
@@ -101,7 +106,7 @@ export function BorangPinjaman({ permohonanId, userId, namaKp, hadKredit, onSele
         <DialogHeader>
           <DialogTitle>Mohon Pinjaman</DialogTitle>
           <DialogDescription>
-            Had kredit anda {ringgit(hadKredit)}. Pilih jumlah dan tempoh, kemudian isi akaun bank
+            Had kredit anda {ringgit(hadKredit)}. Pilih jumlah dan tempoh (hari), kemudian isi akaun bank
             untuk menerima wang.
           </DialogDescription>
         </DialogHeader>
@@ -131,27 +136,45 @@ export function BorangPinjaman({ permohonanId, userId, namaKp, hadKredit, onSele
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium">Tempoh pinjaman</legend>
             <div className="grid grid-cols-4 gap-2">
-              {TENOR_PILIHAN.map((t) => (
+              {TENOR_HARI.map((t) => (
                 <button
                   key={t}
                   type="button"
                   aria-pressed={tenor === t}
                   onClick={() => setTenor(t)}
-                  className={`rounded-xl border px-2 py-3 text-sm font-semibold transition-colors ${
+                  className={`rounded-xl border px-1 py-3 text-center transition-colors ${
                     tenor === t
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border bg-card hover:bg-accent"
                   }`}
                 >
-                  {t} bulan
+                  <span className="block text-sm font-semibold">{t} hari</span>
+                  <span className="block text-xs opacity-80">
+                    Faedah {peratus(kadarFaedahTetap(t))}
+                  </span>
                 </button>
               ))}
             </div>
-            {anggaran !== null && jumlah && tenor && (
+            {faedah !== null && jumlah && tenor ? (
+              <dl className="mt-1 space-y-1 rounded-xl bg-muted p-3 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Jumlah pinjaman</dt>
+                  <dd className="font-medium">{ringgit(jumlah)}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">
+                    Faedah tetap ({peratus(kadarFaedahTetap(tenor))})
+                  </dt>
+                  <dd className="font-medium">{ringgit(faedah)}</dd>
+                </div>
+                <div className="flex justify-between border-t border-border pt-1">
+                  <dt className="font-semibold">Jumlah perlu dibayar dalam {tenor} hari</dt>
+                  <dd className="font-bold text-primary">{ringgit(jumlah + faedah)}</dd>
+                </div>
+              </dl>
+            ) : (
               <p className="text-xs text-muted-foreground">
-                Anggaran faedah sepanjang {tenor} bulan: {ringgit(anggaran)} (jumlah anggaran{" "}
-                {ringgit(jumlah + anggaran)}). Faedah sebenar dikira setiap hari pada kadar 0.005%
-                daripada jumlah pokok.
+                Pilih jumlah dan tempoh untuk melihat jumlah yang perlu dibayar.
               </p>
             )}
           </fieldset>
@@ -251,6 +274,43 @@ export function BorangPinjaman({ permohonanId, userId, namaKp, hadKredit, onSele
               />
               <Label htmlFor="sah-nama" className="text-xs font-normal leading-snug">
                 Saya mengesahkan nama pemegang akaun sama dengan nama pada kad pengenalan saya.
+              </Label>
+            </div>
+          </div>
+
+          <div className="space-y-3 rounded-xl border border-border p-4">
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer text-sm font-semibold text-foreground">
+                Baca terma dan syarat
+              </summary>
+              <ul className="mt-2 list-disc space-y-1.5 pl-5 leading-relaxed">
+                <li>
+                  Faedah tetap dikenakan sekali sahaja pada jumlah pokok: 14 hari 50%, 21 hari 75%,
+                  28 hari 100% dan 35 hari 125%.
+                </li>
+                <li>
+                  {jumlah && tenor && faedah !== null
+                    ? `Anda perlu membayar ${ringgit(jumlah + faedah)} dalam ${tenor} hari selepas pinjaman diluluskan.`
+                    : "Jumlah yang perlu dibayar ditunjukkan selepas anda memilih jumlah dan tempoh."}
+                </li>
+                <li>
+                  Wang hanya dikreditkan ke akaun bank atas nama yang sama dengan kad pengenalan
+                  anda. Jika nama tidak sepadan, permohonan boleh ditolak.
+                </li>
+                <li>Maklumat yang anda berikan mestilah benar dan lengkap.</li>
+                <li>Pinjaman baharu hanya boleh dimohon selepas pinjaman semasa selesai dibayar.</li>
+              </ul>
+            </details>
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="setuju-terma"
+                checked={setujuTerma}
+                onCheckedChange={(c) => setSetujuTerma(c === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="setuju-terma" className="text-xs font-normal leading-snug">
+                Saya telah membaca dan bersetuju dengan terma dan syarat pinjaman, termasuk faedah
+                tetap dan jumlah yang perlu dibayar.
               </Label>
             </div>
           </div>

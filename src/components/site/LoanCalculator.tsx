@@ -4,21 +4,21 @@ import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { TENOR_HARI, faedahTetap, kadarFaedahTetap, peratus } from "@/lib/pinjaman";
 
 const MIN = 50;
 const MAX = 5000;
-const TENOR = 1;
-const RATE = 0.3; // kadar faedah bulanan (contoh)
 
 const ringgit = (n: number) =>
   new Intl.NumberFormat("ms-MY", { style: "currency", currency: "MYR", maximumFractionDigits: 0 }).format(n);
 
 export function LoanCalculator() {
   const [amount, setAmount] = useState(3_000);
+  const [tenor, setTenor] = useState<number>(TENOR_HARI[0]);
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
 
-  const monthly = Math.round(amount / TENOR + amount * RATE);
+  const faedah = faedahTetap(amount, tenor);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,10 +58,34 @@ export function LoanCalculator() {
             </div>
           </div>
 
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Tempoh pinjaman</p>
+            <div className="grid grid-cols-4 gap-2">
+              {TENOR_HARI.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={tenor === t}
+                  onClick={() => setTenor(t)}
+                  className={`rounded-xl border px-1 py-2.5 text-center transition-colors ${
+                    tenor === t
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card hover:bg-accent"
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{t} hari</span>
+                  <span className="block text-xs opacity-80">{peratus(kadarFaedahTetap(t))}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-            Anggaran ansuran{" "}
-            <span className="font-semibold text-foreground">{ringgit(monthly)}</span> / bulan
-            selama {TENOR} bulan (simulasi).
+            Faedah tetap {peratus(kadarFaedahTetap(tenor))}:{" "}
+            <span className="font-semibold text-foreground">{ringgit(faedah)}</span>. Jumlah perlu
+            dibayar dalam {tenor} hari:{" "}
+            <span className="font-semibold text-foreground">{ringgit(amount + faedah)}</span>{" "}
+            (simulasi).
           </div>
 
           <div className="space-y-2">

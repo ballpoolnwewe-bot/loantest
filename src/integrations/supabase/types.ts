@@ -134,6 +134,9 @@ export type Database = {
           tarikh_lulus: string | null
           tarikh_selesai: string | null
           tempoh_bulan: number | null
+          tempoh_hari: number | null
+          kadar_faedah_tetap: number | null
+          setuju_terma_pada: string | null
           tujuan: string | null
           updated_at: string
           user_id: string
@@ -153,6 +156,9 @@ export type Database = {
           tarikh_lulus?: string | null
           tarikh_selesai?: string | null
           tempoh_bulan?: number | null
+          tempoh_hari?: number | null
+          kadar_faedah_tetap?: number | null
+          setuju_terma_pada?: string | null
           tujuan?: string | null
           updated_at?: string
           user_id: string
@@ -172,6 +178,9 @@ export type Database = {
           tarikh_lulus?: string | null
           tarikh_selesai?: string | null
           tempoh_bulan?: number | null
+          tempoh_hari?: number | null
+          kadar_faedah_tetap?: number | null
+          setuju_terma_pada?: string | null
           tujuan?: string | null
           updated_at?: string
           user_id?: string

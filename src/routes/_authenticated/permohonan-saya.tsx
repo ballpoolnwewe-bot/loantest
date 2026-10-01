@@ -13,8 +13,10 @@ import {
   jumlahFaedah,
   jumlahTagihan,
   labelStatusPinjaman,
+  peratus,
   ringgit,
   sorokNoAkaun,
+  tarikhJatuhTempo,
 } from "@/lib/pinjaman";
 
 export const Route = createFileRoute("/_authenticated/permohonan-saya")({
@@ -38,7 +40,6 @@ type Permohonan = {
   id: string;
   nama_penuh: string;
   jumlah_dipohon: number;
-  tempoh_bulan: number;
   status: string;
   had_kredit: number | null;
   catatan_admin: string | null;
@@ -58,6 +59,8 @@ type Pinjaman = {
   catatan_admin: string | null;
   created_at: string;
   tempoh_bulan: number | null;
+  tempoh_hari: number | null;
+  kadar_faedah_tetap: number | null;
   tujuan: string | null;
   nama_bank: string | null;
   nama_pemegang_akaun: string | null;
@@ -76,7 +79,7 @@ function PermohonanSaya() {
       supabase
         .from("permohonan")
         .select(
-          "id, nama_penuh, jumlah_dipohon, tempoh_bulan, status, had_kredit, catatan_admin, created_at, pekerjaan",
+          "id, nama_penuh, jumlah_dipohon, status, had_kredit, catatan_admin, created_at, pekerjaan",
         )
         .order("created_at", { ascending: false }),
       supabase.from("pinjaman").select("*").order("created_at", { ascending: false }),
@@ -169,7 +172,7 @@ function KadPermohonan({
         <div>
           <p className="text-lg font-bold text-primary">{ringgit(p.jumlah_dipohon)}</p>
           <p className="text-xs text-muted-foreground">
-            {p.tempoh_bulan} bulan · {p.pekerjaan} ·{" "}
+            {p.pekerjaan} ·{" "}
             {new Date(p.created_at).toLocaleDateString("ms-MY")}
           </p>
         </div>
@@ -188,8 +191,8 @@ function KadPermohonan({
           <p className="text-2xl font-extrabold text-foreground">{ringgit(had)}</p>
           <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" />
-            Kadar faedah harian 0.005% daripada jumlah pokok, dikira setiap hari bermula dari
-            tarikh kelulusan pinjaman.
+            Tempoh pinjaman 14, 21, 28 atau 35 hari dengan faedah tetap 50%, 75%, 100% dan 125%.
+            Jumlah yang perlu dibayar ditunjukkan sebelum anda menghantar permohonan.
           </p>
 
           {adaBerjalan ? (
@@ -238,10 +241,10 @@ function KadPinjaman({ pj }: { pj: Pinjaman }) {
         </span>
       </div>
 
-      {(pj.tempoh_bulan || pj.tujuan || pj.nama_bank) && (
+      {(pj.tempoh_hari || pj.tujuan || pj.nama_bank) && (
         <p className="mt-1 text-xs text-muted-foreground">
           {[
-            pj.tempoh_bulan ? `${pj.tempoh_bulan} bulan` : null,
+            pj.tempoh_hari ? `${pj.tempoh_hari} hari` : null,
             pj.tujuan,
             pj.nama_bank ? `${pj.nama_bank} ${sorokNoAkaun(pj.no_akaun)}` : null,
           ]
@@ -259,7 +262,20 @@ function KadPinjaman({ pj }: { pj: Pinjaman }) {
       {(pj.status === "aktif" || pj.status === "selesai") && (
         <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           <Baris label="Pokok" nilai={ringgit(pj.jumlah_pokok)} />
-          <Baris label={`Faedah (${hariBerjalan(pj)} hari)`} nilai={ringgit(jumlahFaedah(pj))} />
+          <Baris
+            label={
+              pj.kadar_faedah_tetap != null
+                ? `Faedah tetap (${peratus(pj.kadar_faedah_tetap)})`
+                : `Faedah (${hariBerjalan(pj)} hari)`
+            }
+            nilai={ringgit(jumlahFaedah(pj))}
+          />
+          {tarikhJatuhTempo(pj) && (
+            <Baris
+              label="Bayar sebelum"
+              nilai={tarikhJatuhTempo(pj)!.toLocaleDateString("ms-MY", { dateStyle: "long" })}
+            />
+          )}
           <Baris label="Jumlah keseluruhan" nilai={ringgit(total)} />
           <Baris label="Sudah dibayar" nilai={ringgit(pj.jumlah_dibayar)} />
           <div className="sm:col-span-2 rounded-lg bg-primary/10 px-3 py-2">

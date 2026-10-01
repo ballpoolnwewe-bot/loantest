@@ -10,7 +10,7 @@ import { Footer } from "@/components/site/Footer";
 
 const title = "Danaro — Pinjaman Dalam Talian Pantas & Telus";
 const description =
-  "Mohon pinjaman dalam talian daripada RM500 hingga RM25,000. Proses pantas, syarat jelas dan ansuran fleksibel.";
+  "Mohon pinjaman dalam talian daripada RM500 hingga RM25,000. Proses pantas dengan tempoh 14 hingga 35 hari dan jumlah bayaran dipaparkan dengan jelas.";
 
 export const Route = createFileRoute("/")({
   head: () => ({

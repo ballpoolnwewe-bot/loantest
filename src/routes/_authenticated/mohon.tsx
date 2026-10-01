@@ -99,7 +99,6 @@ function BorangMohon() {
         pengalaman_tahun: Number(borang.get("pengalaman_tahun") ?? 0),
         gaji_bulanan: Number(borang.get("gaji_bulanan") ?? 0),
         jumlah_dipohon: Number(borang.get("jumlah_dipohon") ?? 0),
-        tempoh_bulan: Number(borang.get("tempoh_bulan") ?? 12),
         foto_kp_path: fotoKpPath,
         foto_selfie_path: fotoSelfiePath,
       });
@@ -133,7 +132,7 @@ function BorangMohon() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-bold">Borang Permohonan Pinjaman</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ambil masa kira-kira 3 minit: maklumat diri, pekerjaan, butiran pinjaman dan dua (2)
+          Ambil masa kira-kira 3 minit: maklumat diri, pekerjaan, jumlah dipohon dan dua (2)
           foto. Permohonan anda akan disemak oleh pasukan kami.
         </p>
 
@@ -245,6 +244,9 @@ function BorangMohon() {
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
             <h2 className="text-base font-bold">Butiran Pinjaman</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Tempoh pinjaman (14 hingga 35 hari) dipilih selepas had kredit anda diluluskan.
+            </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="jumlah_dipohon">Jumlah Dipohon (RM)</Label>
@@ -255,18 +257,6 @@ function BorangMohon() {
                   min="50"
                   required
                   defaultValue={3000}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tempoh_bulan">Tempoh Bayaran (bulan)</Label>
-                <Input
-                  id="tempoh_bulan"
-                  name="tempoh_bulan"
-                  type="number"
-                  min="1"
-                  max="60"
-                  required
-                  defaultValue={12}
                 />
               </div>
             </div>
