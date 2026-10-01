@@ -23,9 +23,9 @@ import {
 export const Route = createFileRoute("/_authenticated/panel")({
   head: () => ({
     meta: [
-      { title: "Panel Kelulusan — Danaro" },
+      { title: "Panel Kelulusan — FinRinggit" },
       { name: "description", content: "Panel pentadbir untuk meluluskan permohonan pinjaman." },
-      { property: "og:title", content: "Panel Kelulusan — Danaro" },
+      { property: "og:title", content: "Panel Kelulusan — FinRinggit" },
       {
         property: "og:description",
         content: "Panel pentadbir untuk meluluskan permohonan pinjaman.",
@@ -121,7 +121,7 @@ function Panel() {
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Wallet className="size-5" />
             </span>
-            <span className="text-lg font-bold tracking-tight">Danaro Panel</span>
+            <span className="text-lg font-bold tracking-tight">FinRinggit Panel</span>
           </Link>
           <Link to="/permohonan-saya" className="text-sm font-medium text-primary hover:underline">
             Permohonan Saya

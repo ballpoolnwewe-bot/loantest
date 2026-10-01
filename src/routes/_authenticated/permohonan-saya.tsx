@@ -19,9 +19,9 @@ import {
 export const Route = createFileRoute("/_authenticated/permohonan-saya")({
   head: () => ({
     meta: [
-      { title: "Permohonan Saya — Danaro" },
+      { title: "Permohonan Saya — FinRinggit" },
       { name: "description", content: "Semak status permohonan pinjaman dan had kredit anda." },
-      { property: "og:title", content: "Permohonan Saya — Danaro" },
+      { property: "og:title", content: "Permohonan Saya — FinRinggit" },
       {
         property: "og:description",
         content: "Semak status permohonan pinjaman dan had kredit anda.",
@@ -109,7 +109,7 @@ function PermohonanSaya() {
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Wallet className="size-5" />
             </span>
-            <span className="text-lg font-bold tracking-tight">Danaro</span>
+            <span className="text-lg font-bold tracking-tight">FinRinggit</span>
           </Link>
           <div className="flex items-center gap-3">
             {adminKah && (

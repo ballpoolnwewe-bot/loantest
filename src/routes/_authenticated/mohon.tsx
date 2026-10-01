@@ -20,9 +20,9 @@ import { useSesi } from "@/hooks/use-sesi";
 export const Route = createFileRoute("/_authenticated/mohon")({
   head: () => ({
     meta: [
-      { title: "Borang Permohonan Pinjaman — Danaro" },
+      { title: "Borang Permohonan Pinjaman — FinRinggit" },
       { name: "description", content: "Isi maklumat diri dan pekerjaan untuk memohon pinjaman." },
-      { property: "og:title", content: "Borang Permohonan Pinjaman — Danaro" },
+      { property: "og:title", content: "Borang Permohonan Pinjaman — FinRinggit" },
       {
         property: "og:description",
         content: "Isi maklumat diri dan pekerjaan untuk memohon pinjaman.",
@@ -122,7 +122,7 @@ function BorangMohon() {
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Wallet className="size-5" />
             </span>
-            <span className="text-lg font-bold tracking-tight">Danaro</span>
+            <span className="text-lg font-bold tracking-tight">FinRinggit</span>
           </Link>
           <Link to="/permohonan-saya" className="text-sm font-medium text-primary hover:underline">
             Permohonan Saya
